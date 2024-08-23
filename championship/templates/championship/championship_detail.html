@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Detalles del campeonato {{championship.nombre}} - {{championship.temporada}}</h1>
+{{error}}
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{form.as_p}}
+    <button>
+        Actualizar
+    </button>
+</form>
+
+<form action="{% url 'championship_delete' championship.id %}" method="POST">
+    {% csrf_token %}
+    <button>
+        Eliminar
+    </button>
+</form>
+
+{% endblock %}

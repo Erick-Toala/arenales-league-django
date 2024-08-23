@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<ul class="nav justify-content-center">
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'championship_view' championship.id %}">Resumen</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link disabled" href="#">Clasificación</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'championship_teams_view' championship.id %}">Equipos</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="#">Jugadores</a>
+    </li>
+</ul>
+
+{% block page_content %}
+{% endblock %}
+
+{% endblock %}

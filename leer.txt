@@ -1,0 +1,6 @@
+Aplicativo Web Gestión de Campeonatos con Django
+Autenticacion, Login,Register, Rutas protegidas, y mas
+
+
+dependencias instaladas:
+pip install Pillow (para trabajar con imágenes en Django)

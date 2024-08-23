@@ -1,0 +1,121 @@
+{% extends 'championship/navbar_championship.html' %}
+
+{% block page_content %}
+
+<div class="container-fluid p-4">
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Equipos: {{ championship.nombre }} - {{ championship.temporada }}</h2>
+        </div>
+        <div class="col-md-6">
+            <div class="d-flex justify-content-end">
+                <form class="d-flex" method="get" action="{% url 'championship_teams_view' championship.id %}">
+                    <input class="form-control me-2" type="search" placeholder="Buscar equipo" aria-label="Buscar equipo" name="search_query" value="{{ search_query }}">
+                    <button class="btn btn-outline-primary" type="submit">Buscar</button>
+                    {% if search_query %}
+                    <a class="btn btn-outline-secondary ms-2" href="{% url 'championship_teams_view' championship.id %}">Volver</a>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="card rounded py-4 bg-light">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card border-light bg-light px-2">
+                    {% if page_obj %}
+                    <div class="row">
+                        {% for team in page_obj %}
+                        <div class="col-md-6 mb-3"  style="cursor: pointer;" onclick="window.location.href=`{% url 'championship_teams_view' championship.id %}?team_id={{ team.id }}&page={{ page_obj.number }}&search_query={{ search_query }}`">
+                            <div class="card h-100 {% if team.id == selected_team.id %}border-primary{% endif %}">
+                                <div class="row g-0">
+                                    <div class="col-md-4">
+                                        <a href="{% url 'championship_teams_view' championship.id %}?team_id={{ team.id }}&page={{ page_obj.number }}&search_query={{ search_query }}">
+                                            <div class="d-flex align-items-center justify-content-center rounded"
+                                                style="width: 100%; height: 100%; overflow: hidden;">
+                                                {% if team.escudo %}
+                                                <img src="{{ team.escudo.url }}" class="img-fluid rounded-start" style="width: 100px; height: 100px; object-fit: contain;">
+                                                {% endif %}
+                                            </div>
+                                        </a>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ team.nombre }}</h5>
+                                            <p class="card-text">Color: {{ team.color }}</p>
+                                            <p class="card-text"><small class="text-body-secondary">Last updated 3 mins ago</small></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Controles de paginación -->
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if search_query %}&search_query={{ search_query }}{% endif %}" aria-label="First">
+                                    <span aria-hidden="true">&laquo;&laquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search_query={{ search_query }}{% endif %}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                <li class="page-item active" aria-current="page"><span class="page-link">{{ num }} <span class="sr-only"></span></span></li>
+                                {% else %}
+                                <li class="page-item"><a class="page-link" href="?page={{ num }}{% if search_query %}&search_query={{ search_query }}{% endif %}">{{ num }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search_query={{ search_query }}{% endif %}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search_query={{ search_query }}{% endif %}" aria-label="Last">
+                                    <span aria-hidden="true">&raquo;&raquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+
+                    {% else %}
+                    <p>No hay equipos registrados en este campeonato.</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-4 px-4">
+                <div class="card">
+                    {% if selected_team %}
+                    <h5 class="card-header">Detalles del Equipo</h5>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ selected_team.nombre }}</h5>
+                        <p class="card-text">Color: {{ selected_team.color }}</p>
+                        <p class="card-text">Escudo: <img src="{{ selected_team.escudo.url }}" alt="{{ selected_team.nombre }} escudo" class="img-fluid" style="max-width: 100px;"></p>
+                        <p class="card-text">Foto: {% if selected_team.foto %}<img src="{{ selected_team.foto.url }}" alt="{{ selected_team.nombre }} foto" class="img-fluid" style="max-width: 100px;">{% else %}No disponible{% endif %}</p>
+                        <a href="{% url 'players_team_view' championship.id selected_team.id %}" class="btn btn-primary">Ver Jugadores</a>
+                    </div>
+                    {% else %}
+                    <div class="card-body">
+                        <p>Selecciona un equipo para ver los detalles.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
