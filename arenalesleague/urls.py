@@ -35,7 +35,10 @@ urlpatterns = [
     #aqui voy a mostrar los equipos de un campeonato especifico
     path('championship/<int:championship_id>/teams/', views.championship_teams_view, name='championship_teams_view'),
     path('championship/<int:championship_id>/teams/<int:team_id>/players/', views.players_team_view, name='players_team_view'),
-    #path('championship/<int:championship_id>/teams/<int:team_id>/players/', views.players_team_view, name='players_team_view'),
+    
+    #admin routes
+    path('championship/<int:championship_id>/teams/create', views.create_teams, name='create_teams'),
+    path('championship/<int:championship_id>/teams/<int:team_id>/players/create', views.create_players, name='create_players'),
 ]
 
 if settings.DEBUG:

@@ -4,10 +4,11 @@ from django.contrib.auth.models import User
 from django.contrib.auth import login, logout, authenticate
 from django.db import IntegrityError
 from .forms import CreateChampionshipForm
-from .models import Championship, Team, Player
+from .models import Championship, Team, Player, PlayerTeam
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.contrib import messages
+
 
 # Create your views here.
 
@@ -164,7 +165,6 @@ def championship_teams_view(request, championship_id):
     
     return render(request, 'championship/teams/championship_teams_view.html', context)
 
-# Jugadores por equipo
 @login_required
 def players_team_view(request, championship_id, team_id):
     championship = get_object_or_404(Championship, pk=championship_id)
@@ -174,11 +174,16 @@ def players_team_view(request, championship_id, team_id):
     search_query = request.GET.get('search_query', '')
     page_number = request.GET.get('page', 1)
 
-    # Filtra los jugadores basados en la búsqueda y el equipo
+    # Filtra los jugadores basados en la búsqueda y el equipo usando PlayerTeam
     if search_query:
-        players = team.players.filter(Q(nombre__icontains=search_query) | Q(apellido__icontains=search_query))
+        player_teams = PlayerTeam.objects.filter(
+            team=team,
+            player__nombre__icontains=search_query
+        ).select_related('player')
     else:
-        players = team.players.all()
+        player_teams = PlayerTeam.objects.filter(team=team).select_related('player')
+
+    players = [pt.player for pt in player_teams]
 
     # Paginación
     paginator = Paginator(players, 8)  # Cambia el número de elementos por página según tu preferencia
@@ -201,3 +206,75 @@ def players_team_view(request, championship_id, team_id):
     }
     
     return render(request, 'championship/players/players_team_view.html', context)
+
+@login_required
+def create_teams(request, championship_id):
+    championship = get_object_or_404(Championship, pk=championship_id)
+
+    if request.method == 'POST':
+        # Obtener los datos del formulario
+        nombre = request.POST.get('nombre')
+        color = request.POST.get('color')
+        escudo = request.FILES.get('escudo')
+        foto = request.FILES.get('foto')
+
+        # Crear el nuevo equipo
+        new_team = Team(
+            nombre=nombre,
+            color=color,
+            escudo=escudo,
+            foto=foto,
+            campeonato=championship
+        )
+        new_team.save()
+
+        # Redirigir a la vista de equipos del campeonato
+        return redirect('championship_teams_view', championship_id=championship.id)
+
+    return render(request, 'championship/admin/team_form.html', {
+        'championship': championship
+    })
+    
+
+
+
+    
+def create_players(request, championship_id, team_id):
+    championship = get_object_or_404(Championship, id=championship_id)
+    team = get_object_or_404(Team, id=team_id)
+
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        apellido = request.POST.get('apellido')
+        cedula = request.POST.get('cedula')
+        dorsal = request.POST.get('dorsal')
+        direccion = request.POST.get('direccion')
+        telefono = request.POST.get('telefono')
+        fecha_nacimiento = request.POST.get('fecha_nacimiento')
+        foto = request.FILES.get('foto')
+
+        # Crear el objeto Player
+        player = Player(
+            nombre=nombre,
+            apellido=apellido,
+            cedula=cedula,
+            dorsal=dorsal,
+            direccion=direccion,
+            telefono=telefono,
+            fecha_nacimiento=fecha_nacimiento,
+            foto=foto,
+        )
+        player.save()
+
+        # Crear la relación en PlayerTeam
+        player_team = PlayerTeam(
+            player=player,
+            team=team,
+            championship=championship
+        )
+        player_team.save()
+
+        messages.success(request, 'Jugador creado exitosamente.')
+        return redirect('players_team_view', championship_id=team.campeonato.id, team_id=team.id)
+
+    return render(request, 'championship/admin/player_create_form.html', {'team': team, 'championship': championship})

@@ -2,12 +2,11 @@ import os
 import shutil
 from django.utils.text import slugify
 from django.db import models
+from datetime import date
+from django.core.exceptions import ValidationError
 
-# Create your models here.
 
 # Modelo para Campeonato
-
-
 def championship_image_path(instance, filename):
     # Genera un nombre de archivo basado en el nombre y la temporada del campeonato
     filename_base, filename_ext = os.path.splitext(filename)
@@ -100,7 +99,7 @@ class Team(models.Model):
     def delete(self, *args, **kwargs):
         # Al eliminar un equipo, eliminar la carpeta que contiene las imágenes
         folder_name = slugify(self.nombre)
-        folder_path = os.path.join('media', 'teams', folder_name)
+        folder_path = os.path.join('media', 'teams_images', folder_name)
         if os.path.isdir(folder_path):
             shutil.rmtree(folder_path)  # Eliminar la carpeta y todo su contenido
         super().delete(*args, **kwargs)
@@ -129,10 +128,16 @@ class Player(models.Model):
     fecha_nacimiento = models.DateField()
     foto = models.ImageField(upload_to=player_image_path, blank=True, null=True)  # No obligatorio
     estado = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='activo')
-    equipo = models.ForeignKey('Team', related_name='players', on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.nombre} {self.apellido} - {self.equipo.nombre}"
+        return f"{self.nombre} {self.apellido}"
+    
+    @property
+    def edad(self):
+        today = date.today()
+        return today.year - self.fecha_nacimiento.year - (
+            (today.month, today.day) < (self.fecha_nacimiento.month, self.fecha_nacimiento.day)
+        )
 
     class Meta:
         verbose_name = "Player"
@@ -152,7 +157,65 @@ class Player(models.Model):
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
+        # Eliminar la imagen si existe
         if self.foto:
             if os.path.isfile(self.foto.path):
                 os.remove(self.foto.path)
         super().delete(*args, **kwargs)
+
+
+class PlayerTeam(models.Model):
+    player = models.ForeignKey(Player, related_name='player_teams', on_delete=models.CASCADE)
+    team = models.ForeignKey(Team, related_name='player_teams', on_delete=models.CASCADE)
+    championship = models.ForeignKey(Championship, related_name='player_teams', on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('player', 'championship')
+        verbose_name = "Player Team"
+        verbose_name_plural = "Player Teams"
+
+    def __str__(self):
+        return f"{self.player} - {self.team} ({self.championship})"
+    
+
+# Modelo para Jornadas
+class Day(models.Model):
+    campeonato = models.ForeignKey(Championship, related_name='days', on_delete=models.CASCADE)
+    numero = models.PositiveIntegerField()  # Número de la jornada dentro del campeonato
+    fecha = models.DateField()  # Fecha de la jornada
+    lugar = models.CharField(max_length=255, blank=True, null=True) # Lugar donde se juega el partido
+
+    def __str__(self):
+        return f"Jornada {self.numero} - {self.campeonato}"
+
+    class Meta:
+        verbose_name = "Day"
+        verbose_name_plural = "Days"
+        ordering = ['fecha', 'numero']
+
+# Modelo para Partidos
+class Match(models.Model):
+    jornada = models.ForeignKey('Day', related_name='matches', on_delete=models.CASCADE)
+    equipo_local = models.ForeignKey('Team', related_name='home_matches', on_delete=models.CASCADE)
+    equipo_visitante = models.ForeignKey('Team', related_name='away_matches', on_delete=models.CASCADE)
+    goles_local = models.PositiveIntegerField(blank=True, null=True)  # Goles del equipo local
+    goles_visitante = models.PositiveIntegerField(blank=True, null=True)  # Goles del equipo visitante
+    fecha_hora = models.DateTimeField()  # Fecha y hora del partido
+    lugar = models.CharField(max_length=255, blank=True, null=True)  # Lugar donde se juega el partido
+
+    def __str__(self):
+        return f"{self.equipo_local} vs {self.equipo_visitante} - Jornada {self.jornada.numero}"
+
+    def clean(self):
+        # Validación para asegurar que un equipo no juegue contra sí mismo
+        if self.equipo_local == self.equipo_visitante:
+            raise ValidationError("Un equipo no puede jugar contra sí mismo.")
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = "Match"
+        verbose_name_plural = "Matches"
+        ordering = ['fecha_hora']

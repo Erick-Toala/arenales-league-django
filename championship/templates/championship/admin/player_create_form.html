@@ -1,0 +1,39 @@
+{% extends 'championship/navbar_championship.html' %}
+
+{% block page_content %}
+<div class="container mt-4">
+    <h2>Crear nuevo jugador para el equipo: {{ team.nombre }}</h2>
+    <form method="post" action="{% url 'create_players' championship.id team.id %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="nombre" name="nombre" required>
+        </div>
+        <div class="mb-3">
+            <label for="apellido" class="form-label">Apellido</label>
+            <input type="text" class="form-control" id="apellido" name="apellido" required>
+        </div>
+        <div class="mb-3">
+            <label for="cedula" class="form-label">Cédula</label>
+            <input type="text" class="form-control" id="cedula" name="cedula" required>
+        </div>
+        <div class="mb-3">
+            <label for="dorsal" class="form-label">Dorsal</label>
+            <input type="number" class="form-control" id="dorsal" name="dorsal" required>
+        </div>
+        <div class="mb-3">
+            <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
+            <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" required>
+        </div>
+        <div class="mb-3">
+            <label for="telefono" class="form-label">Teléfono</label>
+            <input type="text" class="form-control" id="telefono" name="telefono">
+        </div>
+        <div class="mb-3">
+            <label for="foto" class="form-label">Foto</label>
+            <input type="file" class="form-control" id="foto" name="foto">
+        </div>
+        <button type="submit" class="btn btn-primary">Crear Jugador</button>
+    </form>
+</div>
+{% endblock %}

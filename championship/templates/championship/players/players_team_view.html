@@ -9,6 +9,9 @@
         </div>
         <div class="col-md-6">
             <div class="d-flex justify-content-end">
+                <a href="#" class="btn btn-primary me-3 d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#addPlayerModal">
+                    <i class="bi bi-plus-lg me-2"></i>Añadir Jugador
+                </a>
                 <form class="d-flex" method="get" action="">
                     <input class="form-control me-2" type="search" placeholder="Buscar jugador"
                         aria-label="Buscar jugador" name="search_query" value="{{ search_query }}">
@@ -18,6 +21,24 @@
                     {% endif %}
                 </form>
             </div>
+        </div>
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="addPlayerModal" tabindex="-1" aria-labelledby="addPlayerModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="addPlayerModalLabel">Añadir Jugador</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p>Selecciona una opción:</p>
+              <div class="d-grid gap-2">
+                <a href="{% url 'create_players' championship.id team.id %}" class="btn btn-primary">Añadir nuevo jugador</a>
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Añadir jugador existente</button>
+              </div>
+            </div>
+          </div>
         </div>
     </div>
     <div class="card rounded py-4 bg-light">
@@ -60,7 +81,45 @@
                         <p class="text-center">No hay jugadores disponibles.</p>
                         {% endfor %}
                     </div>
+                    <div class="pagination mt-4">
+                        <ul class="pagination">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?search_query={{ search_query }}&page=1" aria-label="Primera">
+                                    <span aria-hidden="true">&laquo;&laquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?search_query={{ search_query }}&page={{ page_obj.previous_page_number }}" aria-label="Anterior">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active" aria-current="page"><span class="page-link">{{ num }}</span></li>
+                                {% else %}
+                                    <li class="page-item"><a class="page-link" href="?search_query={{ search_query }}&page={{ num }}">{{ num }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+                
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?search_query={{ search_query }}&page={{ page_obj.next_page_number }}" aria-label="Siguiente">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?search_query={{ search_query }}&page={{ page_obj.paginator.num_pages }}" aria-label="Última">
+                                    <span aria-hidden="true">&raquo;&raquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
                 </div>
+                
             </div>
             <div class="col-md-4 px-4">
                 <div class="card">
@@ -103,7 +162,7 @@
                             </div>
                         </div>
                         <div class="row px-3 py-2">
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <div>
                                     <h5 class="card-text" style="font-weight: 700;">{{ selected_player.nombre }}</h5>
                                 </div>
@@ -117,29 +176,55 @@
                                     </p>
                                 </div>
                             </div>
+                        </div>
+                        <div class="row px-3">
                             <div class="col-md-6">
                                 <div>
-                                    <p class="card-text text-end">Cédula: {{ selected_player.cedula }}</p>
+                                    <p class="card-text">
+                                        <span style="font-weight: normal;">- Cédula</span>
+                                        <span style="font-weight: 700;">{{ selected_player.cedula }}</span>
+                                    </p>
+                                </div>
+                                
+                                <div>
+                                    <p class="card-text">
+                                        <span style="font-weight: normal;">- Cumpleaños </span>
+                                        <span style="font-weight: 700;">
+                                            {{ selected_player.fecha_nacimiento|date:"d.m.Y" }}
+                                        </span>
+                                    </p>                                    
+                                </div>
+                                
+                            </div>
+                            <div class="col-md-6">
+                                <div>
+                                    <p class="card-text">
+                                        <span style="font-weight: normal;">- Teléfono </span>
+                                        <span style="font-weight: 700;">{{ selected_player.telefono }}</span>
+                                    </p>
                                 </div>
                                 <div>
-                                    <p class="card-text text-end">Teléfono: {{ selected_player.telefono }}</p>
-                                </div>
-                                <div>
-                                    <p class="card-text text-end">Edad: {{ selected_player.fecha_nacimiento }}</p>
-                                </div>
-                                <div>
-                                    <p class="card-text text-end">Estado: {{ selected_player.estado }}</p>
+                                    <p class="card-text">
+                                        <span style="font-weight: normal;">- Estado </span>
+                                        <span style="font-weight: 700;">{{ selected_player.estado }}</span>
+                                    </p>
                                 </div>
                             </div>
                         </div>
                         <div class="row px-3 py-2 text-end">
                             <div>
-                                <p>Ver Perfil</p>
-                            </div>
+                                <a href="#" style="text-decoration: none; font-size: 1.25rem; font-weight: 700;">
+                                    <p>
+                                        <span>Ver Perfil </span><i class="bi bi-arrow-right" style="font-size: 1.25rem;"></i>
+                                    </p>
+                                </a>
+                            </div>                            
                         </div>
                     </div>
                     {% else %}
-                        <p>Selecciona un jugador para ver los detalles.</p>
+                        <div class="card-body">
+                            <p>Selecciona un jugador para ver los detalles.</p>
+                        </div>
                     {% endif %}
                 </div>
                 
@@ -161,43 +246,7 @@
             </div>
         </div>
     </div>
-    <div class="pagination mt-4">
-        <ul class="pagination">
-            {% if page_obj.has_previous %}
-            <li class="page-item">
-                <a class="page-link" href="?search_query={{ search_query }}&page=1" aria-label="Primera">
-                    <span aria-hidden="true">&laquo;&laquo;</span>
-                </a>
-            </li>
-            <li class="page-item">
-                <a class="page-link" href="?search_query={{ search_query }}&page={{ page_obj.previous_page_number }}" aria-label="Anterior">
-                    <span aria-hidden="true">&laquo;</span>
-                </a>
-            </li>
-            {% endif %}
-
-            {% for num in page_obj.paginator.page_range %}
-                {% if page_obj.number == num %}
-                    <li class="page-item active" aria-current="page"><span class="page-link">{{ num }}</span></li>
-                {% else %}
-                    <li class="page-item"><a class="page-link" href="?search_query={{ search_query }}&page={{ num }}">{{ num }}</a></li>
-                {% endif %}
-            {% endfor %}
-
-            {% if page_obj.has_next %}
-            <li class="page-item">
-                <a class="page-link" href="?search_query={{ search_query }}&page={{ page_obj.next_page_number }}" aria-label="Siguiente">
-                    <span aria-hidden="true">&raquo;</span>
-                </a>
-            </li>
-            <li class="page-item">
-                <a class="page-link" href="?search_query={{ search_query }}&page={{ page_obj.paginator.num_pages }}" aria-label="Última">
-                    <span aria-hidden="true">&raquo;&raquo;</span>
-                </a>
-            </li>
-            {% endif %}
-        </ul>
-    </div>
+    
 </div>
 
 <style>
