@@ -8,6 +8,7 @@ from .models import Championship, Team, Player, PlayerTeam
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.contrib import messages
+from django.http import JsonResponse
 
 
 # Create your views here.
@@ -235,10 +236,7 @@ def create_teams(request, championship_id):
         'championship': championship
     })
     
-
-
-
-    
+@login_required
 def create_players(request, championship_id, team_id):
     championship = get_object_or_404(Championship, id=championship_id)
     team = get_object_or_404(Team, id=team_id)
@@ -252,6 +250,15 @@ def create_players(request, championship_id, team_id):
         telefono = request.POST.get('telefono')
         fecha_nacimiento = request.POST.get('fecha_nacimiento')
         foto = request.FILES.get('foto')
+
+        # Verificar si la cédula ya existe
+        if Player.objects.filter(cedula=cedula).exists():
+            messages.error(request, 'El jugador con esta cédula ya existe.')
+            return render(request, 'championship/admin/player_create_form.html', {
+                'team': team,
+                'championship': championship,
+                'cedula': cedula  # Pasar el valor de cédula para que el usuario no lo pierda
+            })
 
         # Crear el objeto Player
         player = Player(
@@ -275,6 +282,15 @@ def create_players(request, championship_id, team_id):
         player_team.save()
 
         messages.success(request, 'Jugador creado exitosamente.')
-        return redirect('players_team_view', championship_id=team.campeonato.id, team_id=team.id)
+        return redirect('players_team_view', championship_id=championship.id, team_id=team.id)
 
-    return render(request, 'championship/admin/player_create_form.html', {'team': team, 'championship': championship})
+    return render(request, 'championship/admin/player_create_form.html', {
+        'team': team,
+        'championship': championship
+    })
+    
+def validate_cedula(request):
+    if request.method == 'GET':
+        cedula = request.GET.get('cedula')
+        exists = Player.objects.filter(cedula=cedula).exists()
+        return JsonResponse({'exists': exists})

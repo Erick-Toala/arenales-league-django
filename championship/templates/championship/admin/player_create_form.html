@@ -1,39 +1,169 @@
+<!-- championship/templates/championship/admin/player_create_form.html -->
 {% extends 'championship/navbar_championship.html' %}
+{% load static %}
 
 {% block page_content %}
-<div class="container mt-4">
-    <h2>Crear nuevo jugador para el equipo: {{ team.nombre }}</h2>
-    <form method="post" action="{% url 'create_players' championship.id team.id %}" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="nombre" class="form-label">Nombre</label>
-            <input type="text" class="form-control" id="nombre" name="nombre" required>
+<div class="container p-5">
+    <div class="card shadow-lg rounded">
+        <div class="card-header bg-primary text-white text-center rounded-top">
+            <div class="d-flex align-items-center">
+                <a href="{% url 'players_team_view' championship.id team.id %}" class="text-white me-3">
+                    <i class="bi bi-arrow-left fs-3"></i>
+                </a>
+                <h3 class="mb-0">Ficha de Registro de Jugador</h3>
+            </div>
         </div>
-        <div class="mb-3">
-            <label for="apellido" class="form-label">Apellido</label>
-            <input type="text" class="form-control" id="apellido" name="apellido" required>
+        <div class="card-body p-4">
+            <h4 class="text-center mb-4">Crear nuevo jugador para el equipo: {{ team.nombre }}</h4>
+            <form id="createPlayerForm" method="post" action="{% url 'create_players' championship.id team.id %}" enctype="multipart/form-data" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="form-section mb-4">
+                            <h5 class="text-primary">Información Personal</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="nombre" class="form-label">Nombre</label>
+                                    <input type="text" class="form-control" id="nombre" name="nombre" required autofocus>
+                                    <div class="invalid-feedback">
+                                        Por favor, ingresa el nombre.
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="apellido" class="form-label">Apellido</label>
+                                    <input type="text" class="form-control" id="apellido" name="apellido" required>
+                                    <div class="invalid-feedback">
+                                        Por favor, ingresa el apellido.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="cedula" class="form-label">Cédula</label>
+                                    <input type="text" class="form-control" id="cedula" name="cedula" required>
+                                    <div id="cedulaError" class="text-danger mt-2"></div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="telefono" class="form-label">Teléfono</label>
+                                    <input type="text" class="form-control" id="telefono">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section mb-4">
+                            <h5 class="text-primary">Detalles del Jugador</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="dorsal" class="form-label">Dorsal</label>
+                                    <input type="number" class="form-control" id="dorsal" name="dorsal" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
+                                    <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 text-center">
+                        <h5 class="text-primary">Fotografía</h5>
+                        <div class="mb-3">
+                            <img id="fotoPreview" class="img-thumbnail mb-2" src="{% static 'general/player-default-male2.png' %}" style="max-height: 250px;">
+                            <input type="file" class="form-control" id="foto" name="foto" accept="image/*" required onchange="previewImage('foto', 'fotoPreview')">
+                            <div class="invalid-feedback">
+                                Por favor, sube una foto.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <button type="button" class="btn btn-success" onclick="validateFormAndShowModal()">Crear Jugador</button>
+                </div>                
+            </form>
         </div>
-        <div class="mb-3">
-            <label for="cedula" class="form-label">Cédula</label>
-            <input type="text" class="form-control" id="cedula" name="cedula" required>
-        </div>
-        <div class="mb-3">
-            <label for="dorsal" class="form-label">Dorsal</label>
-            <input type="number" class="form-control" id="dorsal" name="dorsal" required>
-        </div>
-        <div class="mb-3">
-            <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
-            <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" required>
-        </div>
-        <div class="mb-3">
-            <label for="telefono" class="form-label">Teléfono</label>
-            <input type="text" class="form-control" id="telefono" name="telefono">
-        </div>
-        <div class="mb-3">
-            <label for="foto" class="form-label">Foto</label>
-            <input type="file" class="form-control" id="foto" name="foto">
-        </div>
-        <button type="submit" class="btn btn-primary">Crear Jugador</button>
-    </form>
+    </div>
 </div>
+
+<!-- Modal de confirmación -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Confirmación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro que deseas añadir este jugador al equipo "{{ team.nombre }}"?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="submitForm()">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function previewImage(inputId, previewId) {
+        const input = document.getElementById(inputId);
+        const preview = document.getElementById(previewId);
+        const file = input.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        } else {
+            preview.src = "{% static 'images/default-profile.png' %}";
+        }
+    }
+
+    function submitForm() {
+        document.getElementById('createPlayerForm').submit();
+    }
+
+    function validateFormAndShowModal() {
+        const form = document.getElementById('createPlayerForm');
+        const cedulaField = document.getElementById('cedula');
+        const cedulaError = document.getElementById('cedulaError');
+        const formData = new FormData(form);
+        cedulaError.textContent = ''; // Limpiar mensaje de error
+        
+        if (form.checkValidity()) {
+            // Validar cédula con AJAX
+            fetch('{% url "validate_cedula" %}?cedula=' + encodeURIComponent(cedulaField.value))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        cedulaError.textContent = 'El jugador con esta cédula ya existe.';
+                    } else {
+                        const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+                        confirmModal.show();
+                    }
+                });
+        } else {
+            form.classList.add('was-validated');
+        }
+    }
+
+    (function () {
+        'use strict'
+
+        var forms = document.querySelectorAll('.needs-validation')
+        Array.prototype.slice.call(forms)
+            .forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+    })()
+</script>
 {% endblock %}

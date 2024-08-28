@@ -1,53 +1,94 @@
 {% extends 'championship/navbar_championship.html' %}
+{% load static %}
 
 {% block page_content %}
-<div class="container-fluid p-4 d-flex justify-content-center">
-    <div class="card rounded py-4 p-4 bg-light">
-        <h2 class="text-center mb-4">Añadir Equipo</h2>
-        <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
-            {% csrf_token %}
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="nombre" class="form-label">Nombre del Equipo</label>
-                    <input type="text" class="form-control" id="nombre" name="nombre" required autofocus>
-                    <div class="invalid-feedback">
-                        Por favor, ingresa el nombre del equipo.
+<div class="container p-5">
+    <div class="card shadow-lg rounded mx-auto w-75">
+        <div class="card-header bg-primary text-white text-center rounded-top">
+            <div class="d-flex align-items-center">
+                <a href="{% url 'championship_teams_view' championship.id %}" class="text-white me-3">
+                    <i class="bi bi-arrow-left fs-3"></i>
+                </a>
+                <h3 class="mb-0">Ficha de Registro de Equipo</h3>
+            </div>
+        </div>
+        <div class="card-body p-4">
+            <h4 class="text-center mb-4">Crear nuevo equipo</h4>
+            <form id="createTeamForm" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                {% csrf_token %}
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-section mb-4">
+                            <h5 class="text-primary">Información del Equipo</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="nombre" class="form-label">Nombre del Equipo</label>
+                                    <input type="text" class="form-control" id="nombre" name="nombre" required autofocus>
+                                    <div class="invalid-feedback">
+                                        Por favor, ingresa el nombre del equipo.
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="color" class="form-label">Color del Equipo</label>
+                                    <input type="text" class="form-control" id="color" name="color" required>
+                                    <div class="invalid-feedback">
+                                        Por favor, ingresa el color del equipo.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label for="color" class="form-label">Color del Equipo</label>
-                    <input type="text" class="form-control" id="color" name="color" required>
-                    <div class="invalid-feedback">
-                        Por favor, ingresa el color del equipo.
+
+                <div class="row">
+                    <div class="col-md-6 text-center">
+                        <h5 class="text-primary">Escudo del Equipo</h5>
+                        <div class="mb-3">
+                            <img id="escudoPreview" class="mb-2" src="{% static 'general/teams/escudo-bordes.png' %}" style="max-height: 150px;">
+                            <input type="file" class="form-control" id="escudo" name="escudo" accept="image/*" required onchange="previewImage('escudo', 'escudoPreview')">
+                            <div class="invalid-feedback">
+                                Por favor, sube el escudo del equipo.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-center">
+                        <h5 class="text-primary">Equipación</h5>
+                        <div class="mb-3">
+                            <img id="fotoPreview" class="mb-2" src="{% static 'general/teams/equipo-negro.png' %}" style="max-height: 150px;">
+                            <input type="file" class="form-control" id="foto" name="foto" accept="image/*" onchange="previewImage('foto', 'fotoPreview')">
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="escudo" class="form-label">Escudo del Equipo</label>
-                    <input type="file" class="form-control" id="escudo" name="escudo" accept="image/*" required onchange="previewImage('escudo', 'escudoPreview')">
-                    <div class="invalid-feedback">
-                        Por favor, selecciona el escudo del equipo.
-                    </div>
-                    <img id="escudoPreview" class="img-thumbnail mt-3" style="display: none; max-height: 150px;">
+
+                <div class="text-center mt-4">
+                    <button type="button" class="btn btn-success" onclick="validateFormAndShowModal()">Crear Equipo</button>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label for="foto" class="form-label">Foto del Equipo (opcional)</label>
-                    <input type="file" class="form-control" id="foto" name="foto" accept="image/*" onchange="previewImage('foto', 'fotoPreview')">
-                    <img id="fotoPreview" class="img-thumbnail mt-3" style="display: none; max-height: 150px;">
-                </div>
-            </div>
-            <div class="text-center">
-                <button type="submit" class="btn btn-primary">Añadir Equipo</button>
-                <a href="{% url 'championship_teams_view' championship.id %}" class="btn btn-secondary">Cancelar</a>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
-    
+</div>
+
+<!-- Modal de confirmación -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Confirmación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro que deseas añadir este equipo al campeonato?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="submitForm()">Confirmar</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-    // Función para previsualizar la imagen seleccionada
     function previewImage(inputId, previewId) {
         const input = document.getElementById(inputId);
         const preview = document.getElementById(previewId);
@@ -57,22 +98,31 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 preview.src = e.target.result;
-                preview.style.display = 'block';
             }
             reader.readAsDataURL(file);
         } else {
-            preview.style.display = 'none';
+            preview.src = "{% static 'images/default-profile.png' %}";
         }
     }
 
-    // Bootstrap validation
+    function submitForm() {
+        document.getElementById('createTeamForm').submit();
+    }
+
+    function validateFormAndShowModal() {
+        const form = document.getElementById('createTeamForm');
+        if (form.checkValidity()) {
+            const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            confirmModal.show();
+        } else {
+            form.classList.add('was-validated');
+        }
+    }
+
     (function () {
         'use strict'
 
-        // Fetch all the forms we want to apply custom Bootstrap validation styles to
         var forms = document.querySelectorAll('.needs-validation')
-
-        // Loop over them and prevent submission
         Array.prototype.slice.call(forms)
             .forEach(function (form) {
                 form.addEventListener('submit', function (event) {
@@ -80,7 +130,6 @@
                         event.preventDefault()
                         event.stopPropagation()
                     }
-
                     form.classList.add('was-validated')
                 }, false)
             })

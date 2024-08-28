@@ -74,7 +74,7 @@ class Team(models.Model):
     campeonato = models.ForeignKey('championship.Championship', related_name='teams', on_delete=models.CASCADE)  # Relación con el campeonato
     
     def __str__(self):
-        return self.nombre
+        return f"{self.nombre} - {self.campeonato}"
     
     class Meta:
         verbose_name = "Team"
@@ -126,7 +126,7 @@ class Player(models.Model):
     direccion = models.CharField(max_length=255, blank=True, null=True)  # No obligatorio
     telefono = models.CharField(max_length=15, blank=True, null=True)  # No obligatorio
     fecha_nacimiento = models.DateField()
-    foto = models.ImageField(upload_to=player_image_path, blank=True, null=True)  # No obligatorio
+    foto = models.ImageField(upload_to=player_image_path)
     estado = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='activo')
 
     def __str__(self):

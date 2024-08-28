@@ -39,6 +39,7 @@ urlpatterns = [
     #admin routes
     path('championship/<int:championship_id>/teams/create', views.create_teams, name='create_teams'),
     path('championship/<int:championship_id>/teams/<int:team_id>/players/create', views.create_players, name='create_players'),
+    path('validate_cedula/', views.validate_cedula, name='validate_cedula'),
 ]
 
 if settings.DEBUG:
