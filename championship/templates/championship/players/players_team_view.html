@@ -28,19 +28,81 @@
         <div class="modal-dialog">
           <div class="modal-content">
             <div class="modal-header">
+                <!-- botón para abrir modal -->
               <h5 class="modal-title" id="addPlayerModalLabel">Añadir Jugador</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
               <p>Selecciona una opción:</p>
               <div class="d-grid gap-2">
+                <!-- botón para crear un nuevo jugador en el equipo actual -->
                 <a href="{% url 'create_players' championship.id team.id %}" class="btn btn-primary">Añadir nuevo jugador</a>
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Añadir jugador existente</button>
+                <!-- botón para añadir un jugador existente al equipo actual -->
+                <a href="#" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#availablePlayersModal">Añadir jugador existente</a>
+                <!-- <button class="btn btn-secondary" data-bs-dismiss="modal">Añadir jugador existente</button> -->
               </div>
             </div>
           </div>
         </div>
     </div>
+    <!-- modal jugadores disponibles -->
+    <div class="modal fade" id="availablePlayersModal" tabindex="-1" aria-labelledby="availablePlayersModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="availablePlayersModalLabel">Añadir Jugador Existente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Apellido</th>
+                                <th>Cédula</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for player_available in players_availables %}
+                            <tr>
+                                <td>{{ player_available.nombre }}</td>
+                                <td>{{ player_available.apellido }}</td>
+                                <td>{{ player_available.cedula }}</td>
+                                <td>
+                                    <button class="btn btn-primary" onclick="showConfirmModal('{{ player_available.id }}', '{{ player_available.nombre }} {{ player_available.apellido }}')">Añadir</button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center">No hay jugadores disponibles.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal de Confirmación -->
+<div class="modal fade" id="confirmAddPlayerModal" tabindex="-1" aria-labelledby="confirmAddPlayerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmAddPlayerModalLabel">Confirmar Añadir Jugador</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmAddPlayerText">¿Estás seguro de que quieres añadir este jugador al equipo?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmAddPlayerBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
     <div class="card rounded py-4 bg-light">
         <div class="row">
             <div class="col-md-8">
@@ -232,6 +294,26 @@
     </div>
     
 </div>
+<script>
+    function showConfirmModal(playerId, playerName) {
+        // Actualiza el texto del modal con el nombre del jugador
+        document.getElementById('confirmAddPlayerText').innerText = `¿Estás seguro de que quieres añadir a ${playerName} al equipo?`;
+
+        // Configura el botón de confirmación para añadir el jugador seleccionado
+        document.getElementById('confirmAddPlayerBtn').onclick = function() {
+            addPlayerToTeam(playerId);
+        };
+
+        // Muestra el modal de confirmación
+        var confirmModal = new bootstrap.Modal(document.getElementById('confirmAddPlayerModal'));
+        confirmModal.show();
+    }
+
+    function addPlayerToTeam(playerId) {
+        // Redirige a la URL de añadir jugador al equipo
+        window.location.href = `{% url 'add_existing_players' championship.id team.id %}?player_id=` + playerId;
+    }
+</script>
 
 <style>
     .status-active {

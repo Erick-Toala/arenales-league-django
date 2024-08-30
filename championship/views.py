@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.http import JsonResponse
-
+from django.db.models import Q
 
 # Create your views here.
 
@@ -167,6 +167,54 @@ def championship_teams_view(request, championship_id):
     return render(request, 'championship/teams/championship_teams_view.html', context)
 
 @login_required
+def championship_players_view(request, championship_id):
+    # Obtén el campeonato
+    championship = get_object_or_404(Championship, id=championship_id)
+
+    # Filtrar objetos PlayerTeam que pertenecen al campeonato actual
+    player_teams = PlayerTeam.objects.filter(championship=championship)
+
+    # Extraer jugadores únicos de esos PlayerTeam
+    players = Player.objects.filter(id__in=player_teams.values('player')).distinct()
+
+    # Obtener equipos de esos PlayerTeam
+    teams = Team.objects.filter(id__in=player_teams.values('team')).distinct()
+
+    # Procesar el filtro de equipo si se ha seleccionado uno
+    selected_team_id = request.GET.get('team')
+    if selected_team_id:
+        players_with_teams = [
+            {
+                'player': player,
+                'team': player_teams.filter(player=player).first().team  # Obtener el equipo del PlayerTeam
+            }
+            for player in players if player_teams.filter(player=player, team_id=selected_team_id).exists()
+        ]
+    else:
+        # Lista de jugadores con sus respectivos equipos dentro del campeonato actual
+        players_with_teams = [
+            {
+                'player': player,
+                'team': player_teams.filter(player=player).first().team  # Obtener el equipo del PlayerTeam
+            }
+            for player in players
+        ]
+
+    # Obtener jugadores sin equipo ni campeonato (jugadores que no están en PlayerTeam)
+    players_free = Player.objects.exclude(id__in=player_teams.values('player')).distinct()
+    
+    # Para los jugadores sin equipo, agregamos el campo de equipo "Sin equipo"
+    for player in players_free:
+        player.team_name = "Sin equipo"
+
+    return render(request, 'championship/players/players_championship_view.html', {
+        'championship': championship,
+        'players_with_teams': players_with_teams,
+        'players_free': players_free,
+        'teams': teams
+    })
+
+@login_required
 def players_team_view(request, championship_id, team_id):
     championship = get_object_or_404(Championship, pk=championship_id)
     team = get_object_or_404(Team, pk=team_id)
@@ -195,11 +243,20 @@ def players_team_view(request, championship_id, team_id):
     selected_player = None
     if selected_player_id:
         selected_player = get_object_or_404(Player, id=selected_player_id)
+        
+    # Obtener los IDs de los jugadores que ya están registrados en el equipo de este campeonato
+    player_teams_in_championship = PlayerTeam.objects.filter(championship=championship).values_list('player_id', flat=True)
+    # Filtrar jugadores que NO están en el equipo en este campeonato específico
+    # También filtrar jugadores que NO tienen ningún registro en PlayerTeam
+    players_availables = Player.objects.filter(
+        Q(player_teams__isnull=True) | ~Q(id__in=player_teams_in_championship)
+    ).distinct()
 
     # Contexto para la plantilla
     context = {
         'championship': championship,
         'team': team,
+        'players_availables': players_availables,
         'page_obj': page_obj,
         'search_query': search_query,
         'current_page': page_number,  # Añadido para la paginación
@@ -294,3 +351,46 @@ def validate_cedula(request):
         cedula = request.GET.get('cedula')
         exists = Player.objects.filter(cedula=cedula).exists()
         return JsonResponse({'exists': exists})
+    
+@login_required
+def respaldo(request, championship_id, team_id):
+    # Obtener el campeonato y el equipo seleccionados
+    championship = get_object_or_404(Championship, id=championship_id)
+    team = get_object_or_404(Team, id=team_id)
+
+    # Obtener los IDs de los jugadores que ya están registrados en el equipo de este campeonato
+    player_teams_in_championship = PlayerTeam.objects.filter(championship=championship).values_list('player_id', flat=True)
+    
+    # Filtrar jugadores que NO están en el equipo en este campeonato específico
+    # También filtrar jugadores que NO tienen ningún registro en PlayerTeam
+    jugadores_disponibles = Player.objects.filter(
+        Q(player_teams__isnull=True) | ~Q(id__in=player_teams_in_championship)
+    ).distinct()
+
+    context = {
+        'championship': championship,
+        'team': team,
+        'jugadores_disponibles': jugadores_disponibles,
+    }
+    return render(request, 'championship/admin/players/player_add_existing_form.html', context)
+
+@login_required
+def add_existing_players_view(request, championship_id, team_id):
+    championship = get_object_or_404(Championship, id=championship_id)
+    team = get_object_or_404(Team, id=team_id)
+    
+    # Obtener el jugador a agregar del parámetro GET
+    player_id = request.GET.get('player_id')
+    if player_id:
+        player = get_object_or_404(Player, id=player_id)
+        
+        # Verificar si el jugador ya está en el equipo en este campeonato
+        if PlayerTeam.objects.filter(player=player, team=team, championship=championship).exists():
+            messages.warning(request, f'El jugador {player.nombre} {player.apellido} ya está en este equipo.')
+        else:
+            # Añadir jugador al equipo
+            PlayerTeam.objects.create(player=player, team=team, championship=championship)
+            messages.success(request, f'El jugador {player.nombre} {player.apellido} ha sido añadido al equipo.')
+    
+    # Redirigir de nuevo a la vista de jugadores del equipo
+    return redirect('players_team_view', championship_id=championship_id, team_id=team_id)

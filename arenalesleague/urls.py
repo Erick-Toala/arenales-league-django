@@ -36,10 +36,14 @@ urlpatterns = [
     path('championship/<int:championship_id>/teams/', views.championship_teams_view, name='championship_teams_view'),
     path('championship/<int:championship_id>/teams/<int:team_id>/players/', views.players_team_view, name='players_team_view'),
     
+    #todos los jugadores de un campeonato especifico y el equipo en el que juega. Ademas de los jugadores sin equipo y sin campeonato
+    path('championship/<int:championship_id>/players/', views.championship_players_view, name='championship_players_view'),
+    
     #admin routes
     path('championship/<int:championship_id>/teams/create', views.create_teams, name='create_teams'),
     path('championship/<int:championship_id>/teams/<int:team_id>/players/create', views.create_players, name='create_players'),
     path('validate_cedula/', views.validate_cedula, name='validate_cedula'),
+    path('championship/<int:championship_id>/teams/<int:team_id>/players/add-existing-players/', views.add_existing_players_view, name='add_existing_players'),
 ]
 
 if settings.DEBUG:

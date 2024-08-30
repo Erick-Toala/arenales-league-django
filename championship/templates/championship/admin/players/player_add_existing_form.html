@@ -1,0 +1,38 @@
+{% extends 'championship/navbar_championship.html' %}
+
+{% block page_content %}
+<div class="container">
+    <h2>Agregar Jugador Existente a {{ team.nombre }} en {{ championship.nombre }}</h2>
+    
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Foto</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Cédula</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for player in jugadores_disponibles %}
+            <tr>
+                <td><img src="{{ player.foto.url }}" alt="{{ player.nombre }}" style="width: 50px; height: 50px; object-fit: cover;"></td>
+                <td>{{ player.nombre }}</td>
+                <td>{{ player.apellido }}</td>
+                <td>{{ player.cedula }}</td>
+                <td>{{ player.estado }}</td>
+                <td>
+                    <!-- Aquí puedes añadir un botón o enlace para añadir el jugador a un equipo -->
+                    <a href="#" class="btn btn-primary">Añadir al Equipo</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    {% if not jugadores_disponibles %}
+        <p>No hay jugadores disponibles.</p>
+    {% endif %}
+</div>{% endblock %}

@@ -1,0 +1,104 @@
+{% extends 'championship/navbar_championship.html' %}
+{% load static %}
+
+{% block page_content %}
+<div class="container-fluid p-4">
+    <div class="row">
+        <div class="col-md-4 d-flex align-items-center">
+            <h2 class="mb-2">Jugadores</h2>
+        </div>
+        <div class="col-md-4">
+            <div class="d-flex mb-2 justify-content-md-end justify-content-start">
+                <form method="GET" action="#" class="d-flex w-100">
+                    <input type="text" name="query" class="form-control me-2" placeholder="Buscar jugadores..." value="{{ request.GET.query }}">
+                    <button type="submit" class="btn btn-outline-primary">Buscar</button>
+                </form>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <form method="GET" action="#" class="d-flex mb-2 w-100">
+                <select name="team" class="form-select " onchange="this.form.submit()">
+                    <option value="">Filtrar por equipo</option>
+                    {% for team in teams %}
+                        <option value="{{ team.id }}" {% if request.GET.team == team.id|stringformat:"s" %}selected{% endif %}>{{ team.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </div>
+    
+    
+    <!-- Card para jugadores con equipo y campeonato -->
+    <div class="card shadow-sm rounded mb-4">
+        
+        
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Foto</th>
+                            <th>Jugador</th>
+                            <th class="d-none d-md-table-cell">Cédula</th> <!-- Ocultar en pantallas pequeñas -->
+                            <th>Equipo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in players_with_teams %}
+                        <tr>
+                            <td>
+                                {% if entry.player.foto %}
+                                    <img src="{{ entry.player.foto.url }}" alt="{{ entry.player.nombre }} {{ entry.player.apellido }}" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
+                                {% else %}
+                                    <img src="{% static 'general/player-default-male2.png' %}" alt="Default Photo" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
+                                {% endif %}
+                            </td>
+                            <td>{{ entry.player.nombre }} {{ entry.player.apellido }}</td>
+                            <td class="d-none d-md-table-cell">{{ entry.player.cedula }}</td> <!-- Ocultar en pantallas pequeñas -->
+                            <td>{{ entry.team.nombre }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card para jugadores sin equipo ni campeonato -->
+    <div class="card shadow-sm rounded mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0">Jugadores sin equipo</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0 align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Foto</th>
+                            <th>Jugador</th>
+                            <th class="d-none d-md-table-cell">Cédula</th> <!-- Ocultar en pantallas pequeñas -->
+                            <th>Equipo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for player in players_free %}
+                        <tr>
+                            <td>
+                                {% if player.foto %}
+                                    <img src="{{ player.foto.url }}" alt="{{ player.nombre }} {{ player.apellido }}" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
+                                {% else %}
+                                    <img src="{% static 'general/player-default-male2.png' %}" alt="Default Photo" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
+                                {% endif %}
+                            </td>
+                            <td>{{ player.nombre }} {{ player.apellido }}</td>
+                            <td class="d-none d-md-table-cell">{{ player.cedula }}</td> <!-- Ocultar en pantallas pequeñas -->
+                            <td>{{ player.team_name }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
