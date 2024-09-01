@@ -4,28 +4,30 @@
 
 <div class="container-fluid p-4">
     <div class="row">
-        <div class="col-md-6 d-flex align-items-center">
-            <h2>Equipos: {{ championship.nombre }} - {{ championship.temporada }}</h2>
-            
+        <div class="col-md-6 d-flex align-items-center justify-content-center justify-content-md-start">
+            <h2 class="mb-2 text-center text-md-start">Equipos: {{ championship.nombre }} - {{ championship.temporada }}</h2>
         </div>
-        <div class="col-md-6">
-            <div class="d-flex justify-content-end">
-                <a href="{% url 'create_teams' championship.id %}" class="btn btn-primary me-3 d-flex align-items-center">
+        <div class="col-md-3">
+            <div class="d-flex justify-content-center justify-content-md-end mb-2">
+                <a href="{% url 'create_teams' championship.id %}" class="btn btn-primary d-flex align-items-center">
                     <i class="bi bi-plus-lg me-2"></i>Añadir Equipo
                 </a>
-                <form class="d-flex" method="get" action="{% url 'championship_teams_view' championship.id %}">
-                    <input class="form-control me-2" type="search" placeholder="Buscar equipo" aria-label="Buscar equipo" name="search_query" value="{{ search_query }}">
-                    <button class="btn btn-outline-primary" type="submit">Buscar</button>
-                    {% if search_query %}
-                    <a class="btn btn-outline-secondary ms-2" href="{% url 'championship_teams_view' championship.id %}">Volver</a>
-                    {% endif %}
-                </form>
             </div>
+        </div>
+        <div class="col-md-3">
+            <form class="d-flex mb-2 w-100" method="get" action="{% url 'championship_teams_view' championship.id %}">
+                <input class="form-control me-2" type="search" placeholder="Buscar equipo" aria-label="Buscar equipo" name="search_query" value="{{ search_query }}">
+                <button class="btn btn-outline-primary" type="submit">Buscar</button>
+                {% if search_query %}
+                <a class="btn btn-outline-secondary ms-2" href="{% url 'championship_teams_view' championship.id %}">Volver</a>
+                {% endif %}
+            </form>
         </div>
     </div>
     <div class="card rounded py-4 bg-light">
         <div class="row">
-            <div class="col-md-8">
+            <!-- Equipos del campeonato -->
+            <div class="col-md-8 order-2 order-md-1">
                 <div class="card border-light bg-light px-2">
                     {% if page_obj %}
                     <div class="row">
@@ -100,7 +102,8 @@
                     {% endif %}
                 </div>
             </div>
-            <div class="col-md-4 px-4">
+            <!-- Detalles del equipo -->
+            <div class="col-md-4 px-4 mb-2  order-1 order-md-2">
                 <div class="card">
                     {% if selected_team %}
                     <h5 class="card-header">Detalles del Equipo</h5>

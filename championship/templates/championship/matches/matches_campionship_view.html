@@ -1,0 +1,103 @@
+{% extends 'championship/navbar_championship.html' %}
+{% load static %}
+
+{% block page_content %}
+
+<div class="container-fluid p-4">
+    <div class="row">
+        <div class="col-md-6 d-flex align-items-center justify-content-center justify-content-md-start">
+            <h2 class="mb-2 text-center text-md-start">Partidos Jornada {{ selected_day.numero }}</h2>
+        </div>
+        <div class="col-md-3">
+            <div class="d-flex justify-content-center justify-content-md-end mb-2">
+                <a href="{% url 'days_matches_championship_view' championship.id %}" class="btn btn-primary d-flex align-items-center">
+                    <i class="bi bi-gear me-2"></i>Administrar Partidos
+                </a>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <form method="GET" action="{% url 'matches_championship_view' championship.id %}" class="d-flex mb-2 w-100">
+                <select name="day" class="form-select"  onchange="this.form.submit()">
+                    {% for day in days %}
+                        <option value="{{ day.id }}" {% if day == selected_day %}selected{% endif %}>
+                            Jornada {{ day.numero }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </div>
+    <div class="py-2">
+        <div class="row">
+            <div class="col-md">
+                <div class="row">
+                    <div class="mb-1 ">
+                        <span>{{ selected_day.fecha|date:"l, M. j, Y" }}, {{ selected_day.lugar }}</span>
+                    </div>
+                </div>
+                <div class="row">
+                    {% for match in matches %}
+                    <!-- Card para cada partido -->
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 bg-light">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <!-- Columna de los equipos -->
+                                    <div class="col-8 border-end">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <img src="{{ match.equipo_local.escudo.url }}" alt="Escudo Local" class="me-2" style="height: 40px; width:40px; object-fit: cover;">
+                                            <span>{{ match.equipo_local.nombre }}</span>
+                                            {% if match.goles_local is not none %}
+                                                <span class="ms-auto fs-3 fw-bold">{{ match.goles_local }}</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <img src="{{ match.equipo_visitante.escudo.url }}" alt="Escudo Visita" class="me-2" style="height: 40px; width:40px; object-fit: cover;">
+                                            <span>{{ match.equipo_visitante.nombre }}</span>
+                                            {% if match.goles_visitante is not none %}
+                                                <span class="ms-auto fs-3 fw-bold">{{ match.goles_visitante }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <!-- la raya debe estar entre estos dos verticalmente -->
+                                    <!-- Columna de hora y ver detalles -->
+                                    <div class="col-4 text-end">
+                                        <div class="mb-2">
+                                            <span class="badge bg-secondary">{{ match.fecha_hora|date:"H:i" }}</span>
+                                        </div>
+                                        <a href="#" class="btn btn-primary btn-sm">Ver Detalles</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <!-- Paginación -->
+        <div class="card-footer d-flex justify-content-center">
+            <nav aria-label="Paginación de Jornadas">
+                <ul class="pagination">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item px-1">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_day %}&day={{ selected_day.id }}{% endif %}" aria-label="Anterior">
+                                <span aria-hidden="true">← Jornada {{ page_obj.previous_page_number }}</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                    <li class="page-item active"><a class="page-link">{{ page_obj.number }}</a></li>
+                    {% if page_obj.has_next %}
+                        <li class="page-item px-1">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_day %}&day={{ selected_day.id }}{% endif %}" aria-label="Siguiente">
+                                <span aria-hidden="true">Jornada {{ page_obj.next_page_number }} →</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

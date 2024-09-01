@@ -1,22 +1,27 @@
+<!-- championship/templates/championship/players/players_championship_view.html -->
 {% extends 'championship/navbar_championship.html' %}
 {% load static %}
 
 {% block page_content %}
 <div class="container-fluid p-4">
     <div class="row">
-        <div class="col-md-4 d-flex align-items-center">
-            <h2 class="mb-2">Jugadores</h2>
+        <div class="col-md-4 d-flex align-items-center justify-content-center justify-content-md-start">
+            <!-- La clase justify-content-center centrará el texto en pantallas pequeñas -->
+            <h2 class="mb-2 text-center text-md-start">Jugadores</h2>
         </div>
         <div class="col-md-4">
-            <div class="d-flex mb-2 justify-content-md-end justify-content-start">
-                <form method="GET" action="#" class="d-flex w-100">
-                    <input type="text" name="query" class="form-control me-2" placeholder="Buscar jugadores..." value="{{ request.GET.query }}">
+            <div class="d-flex justify-content-md-end justify-content-start mb-2">
+                <form method="GET" action="{% url 'championship_players_view' championship.id %}" class="d-flex w-100">
+                    <input type="text" name="query" class="form-control me-2" placeholder="Buscar jugadores..." value="{{ search_query }}">
                     <button type="submit" class="btn btn-outline-primary">Buscar</button>
+                    {% if search_query %}
+                        <a class="btn btn-outline-secondary ms-2" href="{% url 'championship_players_view' championship.id %}">Volver</a>
+                    {% endif %}
                 </form>
             </div>
         </div>
         <div class="col-md-4">
-            <form method="GET" action="#" class="d-flex mb-2 w-100">
+            <form method="GET" action="{% url 'championship_players_view' championship.id %}" class="d-flex mb-2 w-100">
                 <select name="team" class="form-select " onchange="this.form.submit()">
                     <option value="">Filtrar por equipo</option>
                     {% for team in teams %}
@@ -27,11 +32,8 @@
         </div>
     </div>
     
-    
     <!-- Card para jugadores con equipo y campeonato -->
     <div class="card shadow-sm rounded mb-4">
-        
-        
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover mb-0 align-middle">
@@ -44,23 +46,57 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for entry in players_with_teams %}
-                        <tr>
-                            <td>
-                                {% if entry.player.foto %}
-                                    <img src="{{ entry.player.foto.url }}" alt="{{ entry.player.nombre }} {{ entry.player.apellido }}" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
-                                {% else %}
-                                    <img src="{% static 'general/player-default-male2.png' %}" alt="Default Photo" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
-                                {% endif %}
-                            </td>
-                            <td>{{ entry.player.nombre }} {{ entry.player.apellido }}</td>
-                            <td class="d-none d-md-table-cell">{{ entry.player.cedula }}</td> <!-- Ocultar en pantallas pequeñas -->
-                            <td>{{ entry.team.nombre }}</td>
-                        </tr>
-                        {% endfor %}
+                        {% if players_with_teams %}
+                            {% for entry in players_with_teams %}
+                            <tr>
+                                <td>
+                                    {% if entry.player.foto %}
+                                        <img src="{{ entry.player.foto.url }}" alt="{{ entry.player.nombre }} {{ entry.player.apellido }}" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
+                                    {% else %}
+                                        <img src="{% static 'general/player-default-male2.png' %}" alt="Default Photo" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
+                                    {% endif %}
+                                </td>
+                                <td>{{ entry.player.nombre }} {{ entry.player.apellido }}</td>
+                                <td class="d-none d-md-table-cell">{{ entry.player.cedula }}</td> <!-- Ocultar en pantallas pequeñas -->
+                                <td>{{ entry.team.nombre }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <!-- Mensaje cuando no se encuentra ningún jugador -->
+                            <tr>
+                                <td colspan="4" class="text-center">El jugador "{{ search_query }}" no fue encontrado.</td>
+                            </tr>
+                        {% endif %}
                     </tbody>
                 </table>
             </div>
+        </div>
+        
+        <!-- Paginación -->
+        <div class="card-footer d-flex justify-content-center">
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&query={{ search_query }}{% if request.GET.team %}&team={{ request.GET.team }}{% endif %}" aria-label="Anterior">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                    {% for page in page_obj.paginator.page_range %}
+                        <li class="page-item {% if page == page_obj.number %}active{% endif %}">
+                            <a class="page-link" href="?page={{ page }}&query={{ search_query }}{% if request.GET.team %}&team={{ request.GET.team }}{% endif %}">{{ page }}</a>
+                        </li>
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}&query={{ search_query }}{% if request.GET.team %}&team={{ request.GET.team }}{% endif %}" aria-label="Siguiente">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
         </div>
     </div>
 
@@ -81,20 +117,27 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for player in players_free %}
-                        <tr>
-                            <td>
-                                {% if player.foto %}
-                                    <img src="{{ player.foto.url }}" alt="{{ player.nombre }} {{ player.apellido }}" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
-                                {% else %}
-                                    <img src="{% static 'general/player-default-male2.png' %}" alt="Default Photo" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
-                                {% endif %}
-                            </td>
-                            <td>{{ player.nombre }} {{ player.apellido }}</td>
-                            <td class="d-none d-md-table-cell">{{ player.cedula }}</td> <!-- Ocultar en pantallas pequeñas -->
-                            <td>{{ player.team_name }}</td>
-                        </tr>
-                        {% endfor %}
+                        {% if players_free %}
+                            {% for player in players_free %}
+                            <tr>
+                                <td>
+                                    {% if player.foto %}
+                                        <img src="{{ player.foto.url }}" alt="{{ player.nombre }} {{ player.apellido }}" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
+                                    {% else %}
+                                        <img src="{% static 'general/player-default-male2.png' %}" alt="Default Photo" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
+                                    {% endif %}
+                                </td>
+                                <td>{{ player.nombre }} {{ player.apellido }}</td>
+                                <td class="d-none d-md-table-cell">{{ player.cedula }}</td> <!-- Ocultar en pantallas pequeñas -->
+                                <td>{{ player.team_name }}</td> <!-- Equipo "Sin equipo" -->
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <!-- Mensaje cuando no se encuentra ningún jugador sin equipo -->
+                            <tr>
+                                <td colspan="4" class="text-center">No hay jugadores sin equipo disponibles.</td>
+                            </tr>
+                        {% endif %}
                     </tbody>
                 </table>
             </div>

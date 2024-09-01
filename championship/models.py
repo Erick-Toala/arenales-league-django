@@ -16,14 +16,18 @@ def championship_image_path(instance, filename):
 
 
 class Championship(models.Model):
+    CATEGORIA_CHOICES = [
+        ('masculino', 'Masculino'),
+        ('femenino', 'Femenino'),
+    ]
     nombre = models.CharField(max_length=100)  # Nombre del campeonato
     temporada = models.CharField(max_length=20)  # Temporada del campeonato
     num_equipos = models.PositiveIntegerField()  # Número de equipos que participan
-    # Fecha de inicio del campeonato
-    fecha_inicio = models.DateField(blank=True)
+    fecha_inicio = models.DateField(blank=True)  # Fecha de inicio del campeonato
     fecha_fin = models.DateField(blank=True)  # Fecha de fin del campeonato
     imagen = models.ImageField(
         upload_to=championship_image_path, blank=True, null=True)
+    categoria = models.CharField(max_length=10, choices=CATEGORIA_CHOICES, default='masculino')  # Categoría del campeonato
 
     def __str__(self):
         return f"{self.nombre} - {self.temporada}"
@@ -119,6 +123,11 @@ class Player(models.Model):
         ('suspendido', 'Suspendido'),
     ]
 
+    SEXO_CHOICES = [
+        ('masculino', 'Masculino'),
+        ('femenino', 'Femenino'),
+    ]
+
     nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)
     cedula = models.CharField(max_length=10, unique=True)
@@ -128,6 +137,7 @@ class Player(models.Model):
     fecha_nacimiento = models.DateField()
     foto = models.ImageField(upload_to=player_image_path)
     estado = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='activo')
+    sexo = models.CharField(max_length=10, choices=SEXO_CHOICES, default='masculino')  # Sexo del jugador
 
     def __str__(self):
         return f"{self.nombre} {self.apellido}"

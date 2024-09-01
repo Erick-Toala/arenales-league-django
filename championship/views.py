@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import login, logout, authenticate
 from django.db import IntegrityError
 from .forms import CreateChampionshipForm
-from .models import Championship, Team, Player, PlayerTeam
+from .models import Championship, Team, Player, PlayerTeam, Day, Match
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.contrib import messages
@@ -180,6 +180,18 @@ def championship_players_view(request, championship_id):
     # Obtener equipos de esos PlayerTeam
     teams = Team.objects.filter(id__in=player_teams.values('team')).distinct()
 
+    # Obtener la consulta de búsqueda del parámetro GET
+    search_query = request.GET.get('query', '').strip()
+
+    # Aplicar filtro de búsqueda por nombre o apellido
+    if search_query:
+        players = players.filter(Q(nombre__icontains=search_query) | Q(apellido__icontains=search_query))
+
+    # Paginación: Mostrar solo 10 jugadores por página
+    paginator = Paginator(players, 10)  # Mostrar 10 jugadores por página
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
     # Procesar el filtro de equipo si se ha seleccionado uno
     selected_team_id = request.GET.get('team')
     if selected_team_id:
@@ -188,7 +200,7 @@ def championship_players_view(request, championship_id):
                 'player': player,
                 'team': player_teams.filter(player=player).first().team  # Obtener el equipo del PlayerTeam
             }
-            for player in players if player_teams.filter(player=player, team_id=selected_team_id).exists()
+            for player in page_obj if player_teams.filter(player=player, team_id=selected_team_id).exists()
         ]
     else:
         # Lista de jugadores con sus respectivos equipos dentro del campeonato actual
@@ -197,12 +209,16 @@ def championship_players_view(request, championship_id):
                 'player': player,
                 'team': player_teams.filter(player=player).first().team  # Obtener el equipo del PlayerTeam
             }
-            for player in players
+            for player in page_obj
         ]
 
     # Obtener jugadores sin equipo ni campeonato (jugadores que no están en PlayerTeam)
-    players_free = Player.objects.exclude(id__in=player_teams.values('player')).distinct()
-    
+    players_free = Player.objects.exclude(id__in=player_teams.values('player')).filter(sexo=championship.categoria).distinct()
+
+    # Filtrar jugadores sin equipo ni campeonato con la búsqueda
+    if search_query:
+        players_free = players_free.filter(Q(nombre__icontains=search_query) | Q(apellido__icontains=search_query))
+
     # Para los jugadores sin equipo, agregamos el campo de equipo "Sin equipo"
     for player in players_free:
         player.team_name = "Sin equipo"
@@ -211,7 +227,10 @@ def championship_players_view(request, championship_id):
         'championship': championship,
         'players_with_teams': players_with_teams,
         'players_free': players_free,
-        'teams': teams
+        'teams': teams,
+        'page_obj': page_obj,  # Para la paginación
+        'search_query': search_query,  # Para mantener la búsqueda
+        'current_page': page_number,  # Página actual para la paginación
     })
 
 @login_required
@@ -243,13 +262,16 @@ def players_team_view(request, championship_id, team_id):
     selected_player = None
     if selected_player_id:
         selected_player = get_object_or_404(Player, id=selected_player_id)
-        
+
     # Obtener los IDs de los jugadores que ya están registrados en el equipo de este campeonato
     player_teams_in_championship = PlayerTeam.objects.filter(championship=championship).values_list('player_id', flat=True)
+    
     # Filtrar jugadores que NO están en el equipo en este campeonato específico
     # También filtrar jugadores que NO tienen ningún registro en PlayerTeam
+    # Filtrar jugadores según el género del campeonato
     players_availables = Player.objects.filter(
-        Q(player_teams__isnull=True) | ~Q(id__in=player_teams_in_championship)
+        Q(player_teams__isnull=True) | ~Q(id__in=player_teams_in_championship),
+        sexo=championship.categoria  # Filtra por género del campeonato
     ).distinct()
 
     # Contexto para la plantilla
@@ -262,7 +284,7 @@ def players_team_view(request, championship_id, team_id):
         'current_page': page_number,  # Añadido para la paginación
         'selected_player': selected_player,
     }
-    
+
     return render(request, 'championship/players/players_team_view.html', context)
 
 @login_required
@@ -317,6 +339,12 @@ def create_players(request, championship_id, team_id):
                 'cedula': cedula  # Pasar el valor de cédula para que el usuario no lo pierda
             })
 
+        # Determinar el sexo del jugador basado en la categoría del campeonato
+        if championship.categoria == 'masculino':
+            sexo = 'masculino'
+        else:
+            sexo = 'femenino'
+
         # Crear el objeto Player
         player = Player(
             nombre=nombre,
@@ -327,6 +355,7 @@ def create_players(request, championship_id, team_id):
             telefono=telefono,
             fecha_nacimiento=fecha_nacimiento,
             foto=foto,
+            sexo=sexo  # Asignar el sexo determinado
         )
         player.save()
 
@@ -394,3 +423,46 @@ def add_existing_players_view(request, championship_id, team_id):
     
     # Redirigir de nuevo a la vista de jugadores del equipo
     return redirect('players_team_view', championship_id=championship_id, team_id=team_id)
+
+#Partidos (matches)
+def matches_championship_view(request, championship_id):
+    # Obtener el campeonato específico
+    championship = get_object_or_404(Championship, pk=championship_id)
+    
+    # Obtener todas las jornadas del campeonato
+    days = Day.objects.filter(campeonato=championship).order_by('numero')
+    
+    # Obtener la jornada seleccionada desde el parámetro GET, si existe
+    selected_day_id = request.GET.get('day')
+    if selected_day_id:
+        selected_day = get_object_or_404(Day, pk=selected_day_id, campeonato=championship)
+    else:
+        # Si no se selecciona una jornada, elegir la primera jornada por defecto
+        selected_day = days.first()
+
+    # Obtener los partidos de la jornada seleccionada
+    matches = Match.objects.filter(jornada=selected_day).order_by('fecha_hora')
+    
+    # Paginación de las jornadas (puedes ajustar el número de jornadas por página)
+    paginator = Paginator(days, 1)  # Muestra una jornada por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Renderizar la plantilla con los datos necesarios
+    return render(request, 'championship/matches/matches_campionship_view.html', {
+        'championship': championship,
+        'days': days,
+        'selected_day': selected_day,
+        'matches': matches,
+        'page_obj': page_obj,
+    })
+
+#Jornadas (Days)
+
+#Obtener las jornadas de un campeonato, los partidos de esa jornada, y añadir jornadas a ese campeonato    
+@login_required
+def days_matches_championship_view(request, championship_id):
+    championship = get_object_or_404(Championship, pk=championship_id)
+    return render(request, 'championship/admin/days/days_matches_championship_view.html', {
+        'championship': championship
+    })

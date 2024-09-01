@@ -1,0 +1,122 @@
+<!-- championship/templates/championship/admin/days_matches_championship_view.html -->
+{% extends 'championship/navbar_championship.html' %}
+{% load static %}
+
+{% block page_content %}
+
+<div class="container-fluid p-4">
+    <div class="row">
+        <div class="col-md-8 d-flex align-items-center justify-content-center justify-content-md-start">
+            <h2 class="mb-2 text-center text-md-start">Jornadas</h2>
+        </div>
+        <div class="col-md-4">
+            <div class="d-flex justify-content-center justify-content-md-end mb-2">
+                <a href="#" class="btn btn-primary d-flex align-items-center">
+                    <i class="bi bi-plus-lg me-2"></i>Añadir Jornada
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="py-2">
+        <div class="row">
+            <div class="col-md-8 order-2 order-md-1">
+                <div class="card-body p-0">
+                    <div class="table-responsive rounded">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Num</th>
+                                    <th>Fecha</th>
+                                    <th class="d-none d-md-table-cell">Lugar</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Jornada 1</td>
+                                    <td>domingo, Oct. 6, 2024</td>
+                                    <td class="d-none d-md-table-cell">Cancha Los Arenales</td>
+                                    <td class="mb-2">
+                                        <!-- Botón de Ver -->
+                                        <button class="btn btn-primary btn-sm me-1 mb-1">
+                                            <i class="bi bi-eye"></i> Ver
+                                        </button>
+                                        <!-- Botón de Editar -->
+                                        <button class="btn btn-warning btn-sm me-1 mb-1">
+                                            <i class="bi bi-pencil-square"></i> Editar
+                                        </button>
+                                        <!-- Botón de Eliminar -->
+                                        <button class="btn btn-danger btn-sm mb-1">
+                                            <i class="bi bi-trash"></i> Eliminar
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-2 order-1 order-md-2">
+                <div class="card shadow-sm">
+                    <div class="row">
+                        <h5 class="my-3 text-center">Partidos de la Jornada 1</h5>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="d-flex justify-content-center mb-3">
+                                <a href="#" class="btn btn-primary d-flex align-items-center">
+                                    <i class="bi bi-plus-lg me-2"></i>Añadir Partido
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+            
+                    <!-- Lista de Partidos -->
+                    <div class="row px-3">
+                        <!-- Partido 1 -->
+                        <div class="d-flex align-items-center justify-content-center mb-2 pb-2 border-bottom">
+                            <div class="d-flex align-items-center">
+                                <span class="me-1 fw-bold">Equipo A</span>
+                                <img src="{% static 'general/arenalesleague_logo.png' %}" alt="Escudo Local" class="me-1 rounded-circle border" style="height: 40px; width: 40px; object-fit: cover;">
+                            </div>
+                            <span class="card badge text-dark" style="font-size: 1.1em;">14:00</span>
+                            <div class="d-flex align-items-center">
+                                <img src="{% static 'general/arenalesleague_logo.png' %}" alt="Escudo Visitante" class="ms-1 me-1 rounded-circle border" style="height: 40px; width: 40px; object-fit: cover;">
+                                <span class="fw-bold">Equipo B</span>
+                            </div>
+                        </div>
+                        <!-- Partido 1 -->
+                        <div class="d-flex align-items-center justify-content-center mb-2 pb-2 border-bottom">
+                            <div class="d-flex align-items-center">
+                                <span class="me-1 fw-bold">Atletico Jerusalen</span>
+                                <img src="{% static 'general/arenalesleague_logo.png' %}" alt="Escudo Local" class="me-1 rounded-circle border" style="height: 40px; width: 40px; object-fit: cover;">
+                            </div>
+                            <span class="card badge text-dark" style="font-size: 1.1em;">14:00</span>
+                            <div class="d-flex align-items-center">
+                                <img src="{% static 'general/arenalesleague_logo.png' %}" alt="Escudo Visitante" class="ms-1 me-1 rounded-circle border" style="height: 40px; width: 40px; object-fit: cover;">
+                                <span class="fw-bold">Atletico Jerusalen</span>
+                            </div>
+                        </div>
+            
+                        <!-- Repetir el bloque de Partido para otros partidos -->
+                        <!-- Partido 2 -->
+                        <div class="d-flex align-items-center justify-content-center mb-2 pb-2 border-bottom">
+                            <div class="d-flex align-items-center">
+                                <span class="me-1 fw-bold">Atletico Malimpia</span>
+                                <img src="{% static 'general/arenalesleague_logo.png' %}" alt="Escudo Local" class="me-1 rounded-circle border" style="height: 40px; width: 40px; object-fit: cover;">
+                            </div>
+                            <span class="card badge text-dark" style="font-size: 1.1em;">16:00</span>
+                            <div class="d-flex align-items-center">
+                                <img src="{% static 'general/arenalesleague_logo.png' %}" alt="Escudo Visitante" class="ms-1 me-1 rounded-circle border" style="height: 40px; width: 40px; object-fit: cover;">
+                                <span class="fw-bold">Atletico Malimpia</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+{% endblock %}

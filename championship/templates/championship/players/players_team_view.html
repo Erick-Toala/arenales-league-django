@@ -4,23 +4,25 @@
 
 <div class="container-fluid p-4">
     <div class="row">
-        <div class="col-md-6">
-            <h2>Jugadores del equipo: {{ team.nombre }}</h2>
+        <div class="col-md-6 d-flex align-items-center justify-content-center justify-content-md-start">
+            <h2 class="mb-2 text-center text-md-start">Jugadores del equipo: {{ team.nombre }}</h2>
         </div>
-        <div class="col-md-6">
-            <div class="d-flex justify-content-end">
-                <a href="#" class="btn btn-primary me-3 d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#addPlayerModal">
+        <div class="col-md-3">
+            <div class="d-flex justify-content-center justify-content-md-end mb-2">
+                <a href="#" class="btn btn-primary d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#addPlayerModal">
                     <i class="bi bi-plus-lg me-2"></i>Añadir Jugador
                 </a>
-                <form class="d-flex" method="get" action="">
-                    <input class="form-control me-2" type="search" placeholder="Buscar jugador"
-                        aria-label="Buscar jugador" name="search_query" value="{{ search_query }}">
-                    <button class="btn btn-outline-primary" type="submit">Buscar</button>
-                    {% if search_query %}
-                    <a class="btn btn-outline-secondary ms-2" href="{% url 'players_team_view' championship.id team.id %}">Volver</a>
-                    {% endif %}
-                </form>
             </div>
+        </div>
+        <div class="col-md-3">
+            <form class="d-flex mb-2 w-100" method="get" action="">
+                <input class="form-control me-2" type="search" placeholder="Buscar jugador"
+                    aria-label="Buscar jugador" name="search_query" value="{{ search_query }}">
+                <button class="btn btn-outline-primary" type="submit">Buscar</button>
+                {% if search_query %}
+                <a class="btn btn-outline-secondary ms-2" href="{% url 'players_team_view' championship.id team.id %}">Volver</a>
+                {% endif %}
+            </form>
         </div>
     </div>
     <!-- Modal Añadir Jugador -->
@@ -85,27 +87,28 @@
         </div>
     </div>
     <!-- Modal de Confirmación -->
-<div class="modal fade" id="confirmAddPlayerModal" tabindex="-1" aria-labelledby="confirmAddPlayerModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="confirmAddPlayerModalLabel">Confirmar Añadir Jugador</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p id="confirmAddPlayerText">¿Estás seguro de que quieres añadir este jugador al equipo?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="confirmAddPlayerBtn">Confirmar</button>
+    <div class="modal fade" id="confirmAddPlayerModal" tabindex="-1" aria-labelledby="confirmAddPlayerModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmAddPlayerModalLabel">Confirmar Añadir Jugador</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="confirmAddPlayerText">¿Estás seguro de que quieres añadir este jugador al equipo?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="confirmAddPlayerBtn">Confirmar</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
-
+    
     <div class="card rounded py-4 bg-light">
         <div class="row">
-            <div class="col-md-8">
+            <!-- Jugadores  -->
+            <div class="col-md-8 order-2 order-md-1">
                 <div class="card border-light bg-light px-2">
                     <div class="row row-cols-1 row-cols-md-4 g-4"> <!-- Ajusta las columnas aquí -->
                         {% for player in page_obj %}
@@ -180,50 +183,48 @@
                             {% endif %}
                         </ul>
                     </div>
-                </div>
-                
+                </div>              
             </div>
-            <div class="col-md-4 px-4">
+            <!-- Ver detalles de jugador al seleccionarlo -->
+            <div class="col-md-4 px-4 mb-2 order-1 order-md-2">
                 <div class="card">
                     {% if selected_player %}
-                    <div class="mb-3" style="max-width: 540px;">
+                    <div style="max-width: 540px;">
                         <div class="row g-0">
-                            <div class="col-md-4">
+                            <!-- Columna para las estadísticas -->
+                            <div class="col-4 col-md-4 order-2 order-md-1">
                                 <div class="card-body ps-3">
-                                    <div>
-                                        <p class="card-text">Goles</p>
+                                    <div class="stat-item">
+                                        <div>
+                                            <p class="card-text">Goles</p>
+                                        </div>
+                                        <div>
+                                            <p class="h3" style="font-weight: 700;">1</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p class="h3" style="font-weight: 700;">1</p>
+                                    <div class="stat-item">
+                                        <div><p class="card-text">Asistencias</p></div>
+                                        <div><p class="h3" style="font-weight: 700;">3</p></div>             
                                     </div>
-                                    <div>
-                                        <p class="card-text">Asistencias</p>
+                                    <div class="stat-item">
+                                        <div><p class="card-text">Amarillas</p></div>
+                                        <div><p class="h3" style="font-weight: 700;">2</p></div>
                                     </div>
-                                    <div>
-                                        <p class="h3" style="font-weight: 700;">3</p>
+                                    <div class="stat-item">
+                                        <div><p class="card-text">Rojas</p></div>
+                                        <div><p class="h3" style="font-weight: 700;">0</p></div>           
                                     </div>
-                                    <div>
-                                        <p class="card-text">Amarillas</p>
-                                    </div>
-                                    <div>
-                                        <p class="h3" style="font-weight: 700;">2</p>
-                                    </div>
-                                    <div>
-                                        <p class="card-text">Rojas</p>
-                                    </div>
-                                    <div>
-                                        <p class="h3" style="font-weight: 700;">0</p>
-                                    </div>
-                                    
                                 </div>
                             </div>
-                            <div class="col-md-8">
-                                <div class="d-flex align-items-center justify-content-center rounded" style="width: 100%; height: 300px; overflow: hidden;">
-                                    <img src="{{ selected_player.foto.url }}" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;" alt="Foto del jugador">
+                            <!-- Columna para la imagen -->
+                            <div class="col-8 col-md-8 order-1 order-md-2" style="height: 290px">
+                                <div class="d-flex align-items-center justify-content-center rounded" style="width: 100%; height: 100%; overflow: hidden;">
+                                    <img src="{{ selected_player.foto.url }}" class="img-fluid player-img" style="width: 100%; height: 100%; object-fit: cover;" alt="Foto del jugador">
                                 </div>
                             </div>
                         </div>
-                        <div class="row px-3 py-2">
+                        <!-- Información adicional del jugador -->
+                        <div class="row px-3">
                             <div class="col-md-12">
                                 <div>
                                     <h5 class="card-text" style="font-weight: 700;">{{ selected_player.nombre }}</h5>
@@ -239,6 +240,7 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- Más detalles del jugador -->
                         <div class="row px-3">
                             <div class="col-md-6">
                                 <div>
@@ -247,16 +249,12 @@
                                         <span style="font-weight: 700;">{{ selected_player.cedula }}</span>
                                     </p>
                                 </div>
-                                
                                 <div>
                                     <p class="card-text">
                                         <span style="font-weight: normal;">- Cumpleaños </span>
-                                        <span style="font-weight: 700;">
-                                            {{ selected_player.fecha_nacimiento|date:"d.m.Y" }}
-                                        </span>
+                                        <span style="font-weight: 700;">{{ selected_player.fecha_nacimiento|date:"d.m.Y" }}</span>
                                     </p>                                    
                                 </div>
-                                
                             </div>
                             <div class="col-md-6">
                                 <div>
@@ -273,6 +271,7 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- Enlace para ver el perfil -->
                         <div class="row px-3 py-2 text-end">
                             <div>
                                 <a href="#" style="text-decoration: none; font-size: 1.25rem; font-weight: 700;">
@@ -284,12 +283,13 @@
                         </div>
                     </div>
                     {% else %}
-                        <div class="card-body">
-                            <p>Selecciona un jugador para ver los detalles.</p>
-                        </div>
+                    <div class="card-body">
+                        <p>Selecciona un jugador para ver los detalles.</p>
+                    </div>
                     {% endif %}
                 </div>
             </div>
+            
         </div>
     </div>
     
@@ -327,5 +327,11 @@
     .status-default {
         color: gray;
     }
+    @media (max-width: 576px) {
+        .player-img {
+            height: 250px; /* Ajusta el tamaño de la imagen para pantallas pequeñas */
+        }
+    }
+    
 </style>
 {% endblock %}

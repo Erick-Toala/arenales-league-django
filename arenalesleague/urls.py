@@ -39,6 +39,12 @@ urlpatterns = [
     #todos los jugadores de un campeonato especifico y el equipo en el que juega. Ademas de los jugadores sin equipo y sin campeonato
     path('championship/<int:championship_id>/players/', views.championship_players_view, name='championship_players_view'),
     
+    #rutas para Partidos (Matches)
+    path('championship/<int:championship_id>/matches/', views.matches_championship_view, name='matches_championship_view'),    
+    
+    #rutas para Jornadas (Days)
+    path('championship/<int:championship_id>/days/', views.days_matches_championship_view, name='days_matches_championship_view'),    
+   
     #admin routes
     path('championship/<int:championship_id>/teams/create', views.create_teams, name='create_teams'),
     path('championship/<int:championship_id>/teams/<int:team_id>/players/create', views.create_players, name='create_players'),
